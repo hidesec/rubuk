@@ -18,14 +18,14 @@ interface Book {
 const genres = ["Semua", "Fiksi", "Non-Fiksi", "Biografi", "Puisi", "Fiksi Fantasi"];
 
 export default function BooksPage() {
-  const { user, authHeaders } = useAuth();
+  const { user } = useAuth();
   const [books, setBooks] = useState<Book[]>([]);
   const [activeGenre, setActiveGenre] = useState("Semua");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", author: "", genre: "Fiksi", pages: 0, rating: 0, color: "bg-mocha", year: 2026 });
 
   useEffect(() => {
-    fetch("/api/books").then((r) => r.json()).then((d) => { if (d.ok) setBooks(d.books); });
+    fetch("/api/books", { credentials: "include" }).then((r) => r.json()).then((d) => { if (d.ok) setBooks(d.books); });
   }, []);
 
   const filtered = activeGenre === "Semua" ? books : books.filter((b) => b.genre === activeGenre);
@@ -38,7 +38,7 @@ export default function BooksPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/books", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(form) });
+    const res = await fetch("/api/books", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
     const d = await res.json();
     if (d.ok) {
       setBooks([d.book, ...books]);
@@ -49,15 +49,15 @@ export default function BooksPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      const res = await fetch("/api/books", { method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ id }) });
+      const res = await fetch("/api/books", { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
       const d = await res.json();
       if (d.ok) {
         setBooks(books.filter((b) => b.id !== id));
       } else {
         alert(d.error || "Gagal menghapus buku");
       }
-    } catch (e) {
-      alert("Error: " + (e as Error).message);
+    } catch {
+      alert("Terjadi kesalahan");
     }
   };
 

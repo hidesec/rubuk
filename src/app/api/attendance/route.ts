@@ -10,13 +10,15 @@ export async function GET(request: Request) {
     const db = getDb();
     let query = db.from("attendance").select("id, discussion_id, user_id, users(name, city)");
     if (discussionId) {
-      query = query.eq("discussion_id", parseInt(discussionId));
+      const parsed = parseInt(discussionId);
+      if (isNaN(parsed)) return NextResponse.json({ ok: false, error: "ID tidak valid" }, { status: 400 });
+      query = query.eq("discussion_id", parsed);
     }
     const { data, error } = await query;
     if (error) throw error;
     return NextResponse.json({ ok: true, attendance: data });
-  } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Terjadi kesalahan" }, { status: 500 });
   }
 }
 
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
     if (!user) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
     const { discussion_id } = await request.json();
-    if (!discussion_id) return NextResponse.json({ ok: false, error: "discussion_id wajib diisi" }, { status: 400 });
+    if (!discussion_id || typeof discussion_id !== "number") return NextResponse.json({ ok: false, error: "discussion_id tidak valid" }, { status: 400 });
 
     const db = getDb();
 
@@ -59,8 +61,8 @@ export async function POST(request: Request) {
     await db.from("discussions").update({ attendees: count || 0 }).eq("id", discussion_id);
 
     return NextResponse.json({ ok: true, record: data });
-  } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Terjadi kesalahan" }, { status: 500 });
   }
 }
 
@@ -70,7 +72,7 @@ export async function DELETE(request: Request) {
     if (!user) return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
     const { discussion_id } = await request.json();
-    if (!discussion_id) return NextResponse.json({ ok: false, error: "discussion_id wajib diisi" }, { status: 400 });
+    if (!discussion_id || typeof discussion_id !== "number") return NextResponse.json({ ok: false, error: "discussion_id tidak valid" }, { status: 400 });
 
     const db = getDb();
     const { error } = await db.from("attendance").delete().eq("discussion_id", discussion_id).eq("user_id", user.userId);
@@ -80,7 +82,7 @@ export async function DELETE(request: Request) {
     await db.from("discussions").update({ attendees: count || 0 }).eq("id", discussion_id);
 
     return NextResponse.json({ ok: true });
-  } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Terjadi kesalahan" }, { status: 500 });
   }
 }

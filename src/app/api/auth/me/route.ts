@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const db = getDb();
     const { data } = await db.from("users").select("id, name, email, role, city, favorite").eq("id", currentUser.userId).single();
     return NextResponse.json({ ok: true, user: data || null });
-  } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Terjadi kesalahan" }, { status: 500 });
   }
 }

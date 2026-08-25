@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { getCurrentUser, hashPassword } from "@/lib/auth";
+import { getCurrentUser, hashPassword, verifyPassword } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     if (!rows) return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
 
     if (currentPassword) {
-      if (rows.password !== hashPassword(currentPassword)) {
+      if (!verifyPassword(currentPassword, rows.password)) {
         return NextResponse.json({ ok: false, error: "Password lama salah" }, { status: 400 });
       }
       await db.from("users").update({ password: hashPassword(newPassword) }).eq("id", user.userId);
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Terjadi kesalahan" }, { status: 500 });
   }
 }
 
@@ -50,6 +50,6 @@ export async function PATCH(request: Request) {
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Terjadi kesalahan" }, { status: 500 });
   }
 }

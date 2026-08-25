@@ -44,7 +44,7 @@ interface Discussion {
 }
 
 export default function DashboardPage() {
-  const { user, loading, authHeaders } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [tab, setTab] = useState<"users" | "registrations" | "books" | "discussions" | "password">("users");
   const [users, setUsers] = useState<User[]>([]);
@@ -71,16 +71,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    const h = authHeaders();
-    fetch("/api/users", { headers: h }).then((r) => r.json()).then((d) => { if (d.ok) setUsers(d.users); });
-    fetch("/api/registrations", { headers: h }).then((r) => r.json()).then((d) => { if (d.ok) setRegistrations(d.registrations); });
-    fetch("/api/books").then((r) => r.json()).then((d) => { if (d.ok) setBooks(d.books); });
-    fetch("/api/discussions").then((r) => r.json()).then((d) => { if (d.ok) setDiscussions(d.discussions); });
+    fetch("/api/users", { credentials: "include" }).then((r) => r.json()).then((d) => { if (d.ok) setUsers(d.users); });
+    fetch("/api/registrations", { credentials: "include" }).then((r) => r.json()).then((d) => { if (d.ok) setRegistrations(d.registrations); });
+    fetch("/api/books", { credentials: "include" }).then((r) => r.json()).then((d) => { if (d.ok) setBooks(d.books); });
+    fetch("/api/discussions", { credentials: "include" }).then((r) => r.json()).then((d) => { if (d.ok) setDiscussions(d.discussions); });
   }, [user]);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/users", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(userForm) });
+    const res = await fetch("/api/users", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(userForm) });
     const d = await res.json();
     if (d.ok) {
       setUsers([d.user, ...users]);
@@ -93,7 +92,7 @@ export default function DashboardPage() {
 
   const handleDeleteUser = async (id: number) => {
     if (!confirm("Hapus user ini?")) return;
-    const res = await fetch("/api/users", { method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ id }) });
+    const res = await fetch("/api/users", { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     const d = await res.json();
     if (d.ok) setUsers(users.filter((u) => u.id !== id));
     else alert(d.error);
@@ -101,7 +100,7 @@ export default function DashboardPage() {
 
   const handleAddBook = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/books", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(bookForm) });
+    const res = await fetch("/api/books", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bookForm) });
     const d = await res.json();
     if (d.ok) {
       setBooks([d.book, ...books]);
@@ -112,15 +111,15 @@ export default function DashboardPage() {
 
   const handleDeleteBook = async (id: number) => {
     try {
-      const res = await fetch("/api/books", { method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ id }) });
+      const res = await fetch("/api/books", { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
       const d = await res.json();
       if (d.ok) {
         setBooks(books.filter((b) => b.id !== id));
       } else {
         alert(d.error || "Gagal menghapus buku");
       }
-    } catch (e) {
-      alert("Error: " + (e as Error).message);
+    } catch {
+      alert("Terjadi kesalahan");
     }
   };
 
@@ -129,7 +128,7 @@ export default function DashboardPage() {
     const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const parts = discForm.date.split("-");
     const indoDate = `${parseInt(parts[2])} ${months[parseInt(parts[1]) - 1]} ${parts[0]}`;
-    const res = await fetch("/api/discussions", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ ...discForm, date: indoDate }) });
+    const res = await fetch("/api/discussions", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...discForm, date: indoDate }) });
     const d = await res.json();
     if (d.ok) {
       setDiscussions([d.discussion, ...discussions]);
@@ -142,15 +141,15 @@ export default function DashboardPage() {
 
   const handleDeleteDiscussion = async (id: number) => {
     try {
-      const res = await fetch("/api/discussions", { method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ id }) });
+      const res = await fetch("/api/discussions", { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
       const d = await res.json();
       if (d.ok) {
         setDiscussions(discussions.filter((d) => d.id !== id));
       } else {
         alert(d.error || "Gagal menghapus diskusi");
       }
-    } catch (e) {
-      alert("Error: " + (e as Error).message);
+    } catch {
+      alert("Terjadi kesalahan");
     }
   };
 
@@ -167,7 +166,8 @@ export default function DashboardPage() {
     }
     const res = await fetch("/api/auth/update", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeaders() },
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword }),
     });
     const d = await res.json();
@@ -188,7 +188,8 @@ export default function DashboardPage() {
     }
     const res = await fetch("/api/auth/update", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", ...authHeaders() },
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: targetId, newPassword: adminPwValue }),
     });
     const d = await res.json();
@@ -366,7 +367,9 @@ export default function DashboardPage() {
                     <p className="text-sm font-semibold text-espresso">{d.title}</p>
                     <p className="text-xs text-warm-gray">{d.date} · {d.attendees} peserta</p>
                   </div>
-                  <button onClick={() => handleDeleteDiscussion(d.id)} className="text-warm-gray-light hover:text-red-500 transition-colors text-sm" title="Hapus">×</button>
+                  {["admin", "owner"].includes(user.role) && (
+                    <button onClick={() => handleDeleteDiscussion(d.id)} className="text-warm-gray-light hover:text-red-500 transition-colors text-sm" title="Hapus">×</button>
+                  )}
                 </div>
               ))}
             </div>

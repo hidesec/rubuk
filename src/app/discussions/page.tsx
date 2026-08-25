@@ -38,17 +38,17 @@ function parseIndoDate(dateStr: string): Date {
 }
 
 export default function DiscussionsPage() {
-  const { user, authHeaders } = useAuth();
+  const { user } = useAuth();
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [attendance, setAttendance] = useState<Attendee[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", description: "", date: "" });
 
   useEffect(() => {
-    fetch("/api/discussions").then((r) => r.json()).then((d) => {
+    fetch("/api/discussions", { credentials: "include" }).then((r) => r.json()).then((d) => {
       if (d.ok) setDiscussions(d.discussions);
     }).catch(() => {});
-    fetch("/api/attendance").then((r) => r.json()).then((d) => {
+    fetch("/api/attendance", { credentials: "include" }).then((r) => r.json()).then((d) => {
       if (d.ok) setAttendance(d.attendance);
     }).catch(() => {});
   }, []);
@@ -72,7 +72,7 @@ export default function DiscussionsPage() {
     const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const parts = form.date.split("-");
     const indoDate = `${parseInt(parts[2])} ${months[parseInt(parts[1]) - 1]} ${parts[0]}`;
-    const res = await fetch("/api/discussions", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ ...form, date: indoDate }) });
+    const res = await fetch("/api/discussions", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, date: indoDate }) });
     const d = await res.json();
     if (d.ok) {
       setDiscussions([d.discussion, ...discussions]);
@@ -85,20 +85,20 @@ export default function DiscussionsPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      const res = await fetch("/api/discussions", { method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ id }) });
+      const res = await fetch("/api/discussions", { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
       const d = await res.json();
       if (d.ok) {
         setDiscussions(discussions.filter((d) => d.id !== id));
       } else {
         alert(d.error || "Gagal menghapus diskusi");
       }
-    } catch (e) {
-      alert("Error: " + (e as Error).message);
+    } catch {
+      alert("Terjadi kesalahan");
     }
   };
 
   const handleAttendance = async (discussionId: number) => {
-    const res = await fetch("/api/attendance", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ discussion_id: discussionId }) });
+    const res = await fetch("/api/attendance", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ discussion_id: discussionId }) });
     const d = await res.json();
     if (d.ok) {
       setAttendance([...attendance, d.record]);
@@ -107,7 +107,7 @@ export default function DiscussionsPage() {
   };
 
   const handleCancelAttendance = async (discussionId: number) => {
-    const res = await fetch("/api/attendance", { method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ discussion_id: discussionId }) });
+    const res = await fetch("/api/attendance", { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ discussion_id: discussionId }) });
     const d = await res.json();
     if (d.ok) {
       setAttendance(attendance.filter((a) => !(a.discussion_id === discussionId && a.user_id === user?.id)));

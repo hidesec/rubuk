@@ -14,13 +14,13 @@ interface Story {
 }
 
 export default function CeritaPage() {
-  const { user, authHeaders } = useAuth();
+  const { user } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", content: "", book_title: "" });
 
   useEffect(() => {
-    fetch("/api/stories").then((r) => r.json()).then((d) => { if (d.ok) setStories(d.stories); });
+    fetch("/api/stories", { credentials: "include" }).then((r) => r.json()).then((d) => { if (d.ok) setStories(d.stories); });
   }, []);
 
   const canDelete = (story: Story) => {
@@ -31,7 +31,7 @@ export default function CeritaPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/stories", { method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify(form) });
+    const res = await fetch("/api/stories", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
     const d = await res.json();
     if (d.ok) {
       setStories([d.story, ...stories]);
@@ -42,15 +42,15 @@ export default function CeritaPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      const res = await fetch("/api/stories", { method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() }, body: JSON.stringify({ id }) });
+      const res = await fetch("/api/stories", { method: "DELETE", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
       const d = await res.json();
       if (d.ok) {
         setStories(stories.filter((s) => s.id !== id));
       } else {
         alert(d.error || "Gagal menghapus cerita");
       }
-    } catch (e) {
-      alert("Error: " + (e as Error).message);
+    } catch {
+      alert("Terjadi kesalahan");
     }
   };
 

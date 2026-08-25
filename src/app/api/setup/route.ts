@@ -2,20 +2,24 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminEmail || !adminPassword) {
+      return NextResponse.json({ ok: false, error: "ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required" }, { status: 500 });
+    }
+
     const db = getDb();
-
     const { data: existing } = await db.from("users").select("id").limit(1);
-
     if (existing && existing.length > 0) {
       return NextResponse.json({ ok: true, message: "Database already seeded" });
     }
 
-    const pw = hashPassword("cityofevils");
+    const pw = hashPassword(adminPassword);
     const { error: userErr } = await db.from("users").insert({
       name: "Admin RUBUK",
-      email: "admin@rubuk.id",
+      email: adminEmail,
       password: pw,
       city: "Jakarta",
       role: "admin",
@@ -37,7 +41,7 @@ export async function POST() {
 
     return NextResponse.json({ ok: true, message: "Database seeded" });
   } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: (e as Error).message, sql: getSetupSQL() }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Setup failed" }, { status: 500 });
   }
 }
 

@@ -12,6 +12,6 @@ export async function GET() {
     if (error) throw error;
     return NextResponse.json({ ok: true, members });
   } catch (e: unknown) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Terjadi kesalahan" }, { status: 500 });
   }
 }
