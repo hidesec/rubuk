@@ -1,73 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const members = [
-  {
-    name: "Shinta Kumala Dewi",
-    role: "Founder",
-    favorite: "Laut Bercerita",
-    initial: "S",
-    color: "bg-sage",
-    city: "Jakarta",
-  },
-  {
-    name: "Ahmad Fadli",
-    role: "Anggota Aktif",
-    favorite: "Filosofi Teras",
-    initial: "A",
-    color: "bg-mocha",
-    city: "Jakarta",
-  },
-  {
-    name: "Dewi Sartika",
-    role: "Anggota Aktif",
-    favorite: "Bumi — Tere Liye",
-    initial: "D",
-    color: "bg-sienna",
-    city: "Jakarta",
-  },
-  {
-    name: "Budi Prasetyo",
-    role: "Koordinator Jakarta",
-    favorite: "Negeri 5 Menara",
-    initial: "B",
-    color: "bg-sepia",
-    city: "Jakarta",
-  },
-  {
-    name: "Sari Dewi",
-    role: "Penulis Resensi",
-    favorite: "Cantik Itu Luka",
-    initial: "S",
-    color: "bg-gold",
-    city: "Jakarta",
-  },
-  {
-    name: "Farhan Ramadhan",
-    role: "Anggota Baru",
-    favorite: "The Alchemist",
-    initial: "F",
-    color: "bg-espresso",
-    city: "Jakarta",
-  },
-  {
-    name: "Maya Putri",
-    role: "Koordinator Yogya",
-    favorite: "Perahu Kertas",
-    initial: "M",
-    color: "bg-sage-dark",
-    city: "Jakarta",
-  },
-  {
-    name: "Rizky Aditya",
-    role: "Photographer Komunitas",
-    favorite: "Senja Hujan",
-    initial: "R",
-    color: "bg-mocha",
-    city: "Jakarta",
-  },
-];
+const avatarColors = ["bg-sage", "bg-mocha", "bg-sienna", "bg-sepia", "bg-gold", "bg-espresso", "bg-sage-dark"];
+
+interface Member {
+  id: number;
+  name: string;
+  city: string;
+  role: string;
+  favorite: string;
+}
 
 const benefits = [
   {
@@ -97,6 +40,7 @@ const benefits = [
 ];
 
 export default function CommunityPage() {
+  const [members, setMembers] = useState<Member[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -104,12 +48,27 @@ export default function CommunityPage() {
     interest: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetch("/api/members")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setMembers(d.members); })
+      .catch(() => {});
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(
-      `Terima kasih, ${formData.name}! Pendaftaran kamu akan kami proses. Silakan cek email untuk informasi lebih lanjut.`
-    );
-    setFormData({ name: "", email: "", city: "", interest: "" });
+    const res = await fetch("/api/registrations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const d = await res.json();
+    if (d.ok) {
+      alert(`Terima kasih, ${formData.name}! Pendaftaran kamu akan kami proses.`);
+      setFormData({ name: "", email: "", city: "", interest: "" });
+    } else {
+      alert("Gagal mendaftar. Silakan coba lagi.");
+    }
   };
 
   return (
@@ -153,22 +112,22 @@ export default function CommunityPage() {
                 Anggota Kami
               </h3>
               <div className="grid grid-cols-2 gap-4">
-                {members.map((member) => (
+                {members.map((member, i) => (
                   <div
-                    key={member.name}
+                    key={member.id}
                     className="flex items-center gap-3 p-3 rounded-xl bg-background border border-cream-dark/30"
                   >
                     <div
-                      className={`w-10 h-10 rounded-full ${member.color} flex items-center justify-center text-sm font-bold text-white flex-shrink-0`}
+                      className={`w-10 h-10 rounded-full ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-sm font-bold text-white flex-shrink-0`}
                     >
-                      {member.initial}
+                      {member.name.charAt(0)}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-espresso truncate">
                         {member.name}
                       </p>
                       <p className="text-[10px] text-warm-gray truncate">
-                        {member.role} · {member.city}
+                        {member.role === "owner" ? "Owner" : "Anggota"} · {member.city}
                       </p>
                     </div>
                   </div>

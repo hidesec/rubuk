@@ -1,33 +1,30 @@
 "use client";
 
-const testimonials = [
-  {
-    quote:
-      "RUBUK mengubah cara saya membaca. Dulu saya membaca sendirian, sekarang setiap buku punya makna yang lebih dalam karena bisa didiskusikan bersama.",
-    name: "Shinta Kumala Dewi",
-    role: "Anggota sejak 2023",
-    initial: "R",
-    color: "bg-sage",
-  },
-  {
-    quote:
-      "Diskusi offline-nya luar biasa. Ketemu orang-orang yang punya passion sama, dan ternyata banyak perspektif baru yang saya tidak dapat dari membaca sendiri.",
-    name: "Ahmad Fadli",
-    role: "Anggota Aktif",
-    initial: "A",
-    color: "bg-mocha",
-  },
-  {
-    quote:
-      "Sejak bergabung, saya membaca 3x lebih banyak buku. Tantangan bulanan dan semangat komunitas benar-benar memotivasi.",
-    name: "Dewi Sartika",
-    role: "Anggota sejak 2024",
-    initial: "D",
-    color: "bg-sienna",
-  },
-];
+import { useEffect, useState } from "react";
+
+interface Story {
+  id: number;
+  title: string;
+  content: string;
+  book_title: string;
+  created_at: string;
+  users: { name: string; city: string } | null;
+}
+
+const avatarColors = ["bg-sage", "bg-mocha", "bg-sienna", "bg-sepia", "bg-gold", "bg-espresso", "bg-sage-dark"];
 
 export default function Testimonials() {
+  const [stories, setStories] = useState<Story[]>([]);
+
+  useEffect(() => {
+    fetch("/api/stories")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setStories(d.stories.slice(0, 3)); })
+      .catch(() => {});
+  }, []);
+
+  if (stories.length === 0) return null;
+
   return (
     <section className="py-20 lg:py-28 bg-cream/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,9 +41,9 @@ export default function Testimonials() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {testimonials.map((item) => (
+          {stories.map((item, i) => (
             <div
-              key={item.name}
+              key={item.id}
               className="relative p-7 rounded-2xl bg-background border border-cream-dark/30 hover:shadow-lg hover:shadow-espresso/5 transition-all duration-300"
             >
               <svg
@@ -56,18 +53,18 @@ export default function Testimonials() {
               >
                 <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C9.591 11.692 11 13.182 11 15c0 1.933-1.567 3.5-3.5 3.5-1.183 0-2.307-.527-2.917-1.179zM14.583 17.321C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311C19.591 11.692 21 13.182 21 15c0 1.933-1.567 3.5-3.5 3.5-1.183 0-2.307-.527-2.917-1.179z" />
               </svg>
-              <p className="text-sm text-mocha leading-relaxed mb-6">
-                &ldquo;{item.quote}&rdquo;
+              <p className="text-sm text-mocha leading-relaxed mb-6 line-clamp-4">
+                &ldquo;{item.content}&rdquo;
               </p>
               <div className="flex items-center gap-3 pt-4 border-t border-cream-dark/30">
                 <div
-                  className={`w-10 h-10 rounded-full ${item.color} flex items-center justify-center text-sm font-bold text-white`}
+                  className={`w-10 h-10 rounded-full ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-sm font-bold text-white`}
                 >
-                  {item.initial}
+                  {item.users?.name?.charAt(0) || "?"}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-espresso">{item.name}</p>
-                  <p className="text-xs text-warm-gray">{item.role}</p>
+                  <p className="text-sm font-semibold text-espresso">{item.users?.name || "Anonim"}</p>
+                  <p className="text-xs text-warm-gray">{item.users?.city || "Anggota RUBUK"}</p>
                 </div>
               </div>
             </div>

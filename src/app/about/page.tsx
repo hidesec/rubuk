@@ -81,8 +81,8 @@ export default function AboutPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-espresso">Perjalanan Kami</h3>
             <div className="relative pl-8 border-l-2 border-cream-dark/50 space-y-6">
-              {timeline.map((item) => (
-                <div key={item.year} className="relative">
+              {timeline.map((item, i) => (
+                <div key={i} className="relative">
                   <div className="absolute -left-[41px] w-4 h-4 rounded-full bg-cream border-[3px] border-gold" />
                   <div>
                     <span className="text-xs font-bold text-gold tracking-wider">{item.year}</span>

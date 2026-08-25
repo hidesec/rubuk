@@ -107,3 +107,7 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-warm-gray);
 }
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
